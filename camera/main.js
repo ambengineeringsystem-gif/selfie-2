@@ -282,27 +282,28 @@ async function generatePairCode(){
       pairCodeDisplay.textContent = code;
       pairCodeDisplay.style.display = 'block';
     }
-    // render QR code for the generated pair code so another phone can scan it
-    try{
-      const qrEl = document.getElementById('pairQr');
-      if(qrEl){
-        qrEl.innerHTML = '';
-        // QRCode is provided by qrcode.min.js included in the HTML
-        try{ new QRCode(qrEl, { text: code, width: 200, height: 200, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M }); }catch(e){
-          // fallback: show plain code if QR lib fails
-          qrEl.textContent = code;
-        }
-        qrEl.style.display = 'block';
-      }
-    }catch(e){ console.warn('QR render failed', e); }
     // hide the icon so only the code is visible in the center
     try{ if(genCodeBtn) genCodeBtn.style.display = 'none'; }catch(e){}
+
+    // Create pairing QR that encodes a link to the remote page containing the code as a query parameter
+    try{
+      const pairingQR = document.getElementById('pairingQR');
+      const pairingWrap = document.getElementById('pairingQrWrap');
+      if(pairingQR && pairingWrap){
+        const origin = (location.protocol === 'file:') ? null : location.origin;
+        const remotePath = origin ? `${origin}/remote/index.html` : 'remote/index.html';
+        const url = remotePath + '?code=' + encodeURIComponent(code);
+        pairingQR.src = `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${encodeURIComponent(url)}&choe=UTF-8`;
+        pairingWrap.style.display = 'block';
+      }
+    }catch(e){ console.warn('failed to set pairing QR', e); }
+
     if(pairCodeTimer) clearTimeout(pairCodeTimer);
     pairCodeTimer = setTimeout(async ()=>{
       try{ await remove(ref(db, 'codes/' + code)); }catch(e){}
       if(activePairCode===code) activePairCode=null;
       try{ if(pairCodeDisplay) pairCodeDisplay.textContent = ''; if(pairCodeDisplay) pairCodeDisplay.style.display = 'none'; }catch(e){}
-      try{ const qrEl = document.getElementById('pairQr'); if(qrEl){ qrEl.innerHTML=''; qrEl.style.display='none'; } }catch(e){}
+      try{ const pairingQR = document.getElementById('pairingQR'); const pairingWrap = document.getElementById('pairingQrWrap'); if(pairingQR) pairingQR.src=''; if(pairingWrap) pairingWrap.style.display='none'; }catch(e){}
       try{ if(genCodeBtn) genCodeBtn.style.display = 'block'; }catch(e){}
     }, PAIR_CODE_TTL_MS);
     setStatus('Pair code: ' + code + ' (expires in 5m)');

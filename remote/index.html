@@ -46,10 +46,6 @@
             <input id="codeInput" placeholder="Enter 4–6 character code" maxlength="6" />
             <button id="codeConnect" title="Connect">➤</button>
           </div>
-          <div style="margin-top:10px">
-            <label style="display:block;margin-bottom:6px;color:#cfeffb">Or scan QR</label>
-            <button id="openQrScanner" style="padding:8px 12px;border-radius:8px;border:none;background:#4aa3d6;color:#022;cursor:pointer">Open QR scanner</button>
-          </div>
         </div>
     </section>
 
@@ -68,7 +64,34 @@
   </main>
 
   <script type="module" src="main.js"></script>
-  <!-- QR scanning library (works in modern browsers) -->
-  <script src="https://unpkg.com/html5-qrcode@2.3.7/minified/html5-qrcode.min.js"></script>
+  <!-- QR share modal and floating button -->
+  <div id="qrModal" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;background:rgba(0,0,0,0.45);z-index:9999">
+    <div style="background:#ffffff;padding:18px;border-radius:12px;max-width:92vw;max-height:92vh;overflow:auto;color:#022">
+      <h3 style="margin:0 0 8px">Open remote on your phone</h3>
+      <p style="margin:0 0 12px;color:#415">Scan this code with your phone to open the remote page.</p>
+      <div style="display:flex;justify-content:center">
+        <div style="width:260px;height:260px;background:#f5f7fb;border-radius:12px;display:flex;align-items:center;justify-content:center">
+          <img id="qr-img" alt="QR" style="max-width:100%;max-height:100%" />
+        </div>
+      </div>
+      <div style="text-align:right;margin-top:12px"><button id="qrClose" style="background:#4aa3d6;color:#022;border:0;padding:8px 12px;border-radius:8px;cursor:pointer">Close</button></div>
+    </div>
+  </div>
+  <button id="qrToggle" title="Share this page" style="position:fixed;right:14px;bottom:14px;z-index:9998;background:#4aa3d6;color:#022;border:0;padding:10px 12px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.12);cursor:pointer">🔗 QR</button>
+
+  <script>
+    const origin = (location.protocol === 'file:') ? null : location.origin;
+    const pageUrl = origin ? `${origin}${location.pathname}` : location.href;
+    function qrImageFor(url, size = 400){
+      const encoded = encodeURIComponent(url);
+      return `https://chart.googleapis.com/chart?cht=qr&chs=${size}x${size}&chl=${encoded}&choe=UTF-8`;
+    }
+    document.getElementById('qrToggle').addEventListener('click', () => {
+      document.getElementById('qr-img').src = qrImageFor(pageUrl);
+      document.getElementById('qrModal').style.display = 'flex';
+    });
+    document.getElementById('qrClose').addEventListener('click', () => { document.getElementById('qrModal').style.display = 'none'; });
+    document.getElementById('qrModal').addEventListener('click', (e) => { if(e.target === e.currentTarget) e.currentTarget.style.display = 'none'; });
+  </script>
 </body>
 </html>

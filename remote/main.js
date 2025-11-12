@@ -26,7 +26,6 @@ const statusEl = document.getElementById('status');
 const remoteVideo = document.getElementById('remoteVideo');
 const takePhotoBtn = document.getElementById('takePhoto');
 const capturedDiv = document.getElementById('captured');
-const openQrScannerBtn = document.getElementById('openQrScanner');
 
 let pc = null;
 let callerCandidatesRef = null;
@@ -222,6 +221,19 @@ codeConnectBtn && (codeConnectBtn.onclick = ()=> connectByCode((codeInput && cod
 if(!db){ setStatus('Firebase not configured.'); }
 else { setStatus('Ready — enter camera code to connect'); }
 
+// Auto-connect when opened with ?code=XYZ in the URL — useful for QR-based flow
+try{
+  const params = new URLSearchParams(location.search);
+  const codeParam = params.get('code');
+  if(codeParam){
+    // auto-fill and connect
+    const codeInputEl = document.getElementById('codeInput');
+    if(codeInputEl){ codeInputEl.value = codeParam; }
+    // small delay to ensure DB and UI ready
+    setTimeout(()=> connectByCode(codeParam), 250);
+  }
+}catch(e){ /* ignore */ }
+
 // Startup UI: show only start icon; reveal pairing card when icon clicked
 try{
   const startScreen = document.getElementById('startScreen');
@@ -251,111 +263,3 @@ try{
     });
   }
 }catch(e){ console.warn('start UI init failed', e); }
-
-// QR scanner handling (optional): Uses Html5Qrcode if available and camera allowed.
-if(openQrScannerBtn){
-  openQrScannerBtn.addEventListener('click', async ()=>{
-    try{
-      // create a modal-like overlay for scanner
-      const overlay = document.createElement('div'); overlay.style.position='fixed'; overlay.style.inset=0; overlay.style.background='rgba(0,0,0,0.6)'; overlay.style.display='flex'; overlay.style.alignItems='center'; overlay.style.justifyContent='center'; overlay.style.zIndex=9999;
-      const card = document.createElement('div'); card.style.background='#fff'; card.style.borderRadius='10px'; card.style.padding='12px'; card.style.maxWidth='420px'; card.style.width='92%'; card.style.textAlign='center';
-      const title = document.createElement('div'); title.textContent='Scan pairing QR'; title.style.fontWeight='700'; title.style.marginBottom='8px'; card.appendChild(title);
-      const scannerDiv = document.createElement('div'); scannerDiv.id = 'qrScannerRegion'; scannerDiv.style.width='100%'; scannerDiv.style.height='320px'; card.appendChild(scannerDiv);
-      const cancelBtn = document.createElement('button'); cancelBtn.textContent='Cancel'; cancelBtn.style.marginTop='8px'; cancelBtn.style.padding='8px 12px'; cancelBtn.onclick = ()=>{ try{ html5QrcodeScanner && html5QrcodeScanner.stop().then(()=>{}).catch(()=>{}); overlay.remove(); }catch(e){ overlay.remove(); } };
-      card.appendChild(cancelBtn);
-      overlay.appendChild(card);
-      document.body.appendChild(overlay);
-
-      // Helper to stop any running scanner and cleanup
-      let _cleanup = async () => { overlay.remove(); };
-
-      // Primary: prefer html5-qrcode if available (CDN). If not, fall back to native BarcodeDetector when supported.
-      if(typeof Html5Qrcode !== 'undefined'){
-        const html5QrcodeScanner = new Html5Qrcode('qrScannerRegion');
-        const qrConfig = { fps: 10, qrbox: { width: 260, height: 260 } };
-        // wire cancel to stop the html5Qrcode instance
-        cancelBtn.onclick = ()=>{ try{ html5QrcodeScanner.stop().then(()=>{}).catch(()=>{}); overlay.remove(); }catch(e){ overlay.remove(); } };
-        await html5QrcodeScanner.start({ facingMode: 'environment' }, qrConfig, decodedText => {
-          // decodedText expected to be the short pairing code (e.g., ABCDE) or a URL containing it
-          console.log('QR decoded:', decodedText);
-          let code = decodedText;
-          try{ const url = new URL(decodedText); const c = url.searchParams.get('code'); if(c) code = c; }catch(e){ }
-          // stop scanner and remove overlay
-          html5QrcodeScanner.stop().then(()=>{}).catch(()=>{});
-          overlay.remove();
-          const codeInput = document.getElementById('codeInput'); if(codeInput){ codeInput.value = code; }
-          connectByCode((code||'').trim());
-        }, err => {
-          // ignore scan errors
-        }).catch(e => { alert('Could not start QR scanner: ' + e.message); overlay.remove(); });
-        return;
-      }
-
-      // Fallback: use native BarcodeDetector (available in Chromium-based browsers and some mobile browsers)
-      if('BarcodeDetector' in window){
-        // configure detector for QR codes
-        let detector = null;
-        try{ detector = new BarcodeDetector({ formats: ['qr_code'] }); }catch(e){ detector = null; }
-        if(!detector){ alert('BarcodeDetector exists but could not be created on this device.'); overlay.remove(); return; }
-
-        // create a video element to stream the camera
-        const video = document.createElement('video'); video.style.width = '100%'; video.style.height = '100%'; video.setAttribute('playsinline',''); video.autoplay = true; video.muted = true;
-        const scannerRegion = document.getElementById('qrScannerRegion'); scannerRegion.appendChild(video);
-
-        cancelBtn.onclick = async ()=>{
-          try{ if(stream){ stream.getTracks().forEach(t=>t.stop()); } }catch(e){}
-          try{ overlay.remove(); }catch(e){}
-        };
-
-        let stream = null;
-        try{
-          stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-          video.srcObject = stream;
-        }catch(e){ alert('Camera access needed for QR scanning.'); overlay.remove(); return; }
-
-        // scanning loop
-        let scanning = true;
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-
-        const scanFrame = async ()=>{
-          if(!scanning) return;
-          try{
-            if(video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA){
-              const w = video.videoWidth; const h = video.videoHeight;
-              if(w && h){
-                canvas.width = w; canvas.height = h;
-                ctx.drawImage(video, 0, 0, w, h);
-                try{
-                  // create ImageBitmap for detector if supported
-                  const bitmap = await createImageBitmap(canvas);
-                  const codes = await detector.detect(bitmap);
-                  bitmap.close && bitmap.close();
-                  if(codes && codes.length){
-                    const decodedText = codes[0].rawValue;
-                    console.log('BarcodeDetector decoded:', decodedText);
-                    let code = decodedText;
-                    try{ const url = new URL(decodedText); const c = url.searchParams.get('code'); if(c) code = c; }catch(e){ }
-                    scanning = false;
-                    try{ stream.getTracks().forEach(t=>t.stop()); }catch(e){}
-                    overlay.remove();
-                    const codeInput = document.getElementById('codeInput'); if(codeInput){ codeInput.value = code; }
-                    connectByCode((code||'').trim());
-                    return;
-                  }
-                }catch(e){ /* ignore detection errors */ }
-              }
-            }
-          }catch(e){ console.warn('scanFrame error', e); }
-          // schedule next frame
-          if(scanning) requestAnimationFrame(scanFrame);
-        };
-        requestAnimationFrame(scanFrame);
-        return;
-      }
-
-      // No scanner available
-      alert('QR scanning library not loaded and native BarcodeDetector not available; please ensure internet connectivity or use a browser that supports BarcodeDetector.'); overlay.remove(); return;
-    }catch(e){ console.warn('openQrScanner failed', e); alert('QR scanner failed: ' + e.message); }
-  });
-}
