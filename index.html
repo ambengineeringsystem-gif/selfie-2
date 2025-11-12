@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Selfie Cam Launcher</title>
+  <style>
+    :root{font-family:Segoe UI, Roboto, Arial, sans-serif}
+  /* Use a solid dark-blue background (no gradient) to match the app theme */
+  body{display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#071021;color:#e6eef6}
+  /* Make the launcher match the dark app theme: dark card, light text */
+  .container{width:min(680px,92vw);text-align:center;padding:32px;background:#0b1220;border-radius:12px;box-shadow:0 8px 30px rgba(2,10,18,0.6)}
+  h1{margin:0 0 8px;font-size:20px;color:#e6eef6}
+  p{margin:0 0 16px;color:#9fb3c6;max-width:56ch;margin-left:auto;margin-right:auto}
+  .buttons{display:flex;gap:18px;justify-content:center;flex-wrap:nowrap;margin-top:8px}
+  /* image-only buttons (PNG thumbnails act as the clickable target) */
+  .img-btn{appearance:none;border:0;padding:0;background:transparent;cursor:pointer;width:160px;height:160px;border-radius:12px;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(2,10,18,0.5);transition:transform .12s ease,box-shadow .12s ease}
+  .img-btn:active{transform:translateY(1px)}
+  /* Force the PNG thumbnails to render at the same visible size inside the button.
+    Use a percentage box and contain so different source aspect ratios don't appear
+    larger or get cropped differently. */
+  .img-btn img{width:72%;height:72%;object-fit:contain;display:block}
+  .img-btn[aria-label]{outline-offset:4px}
+    .hint{margin-top:12px;color:#536170;font-size:13px}
+  .btn-wrap{display:flex;flex-direction:column;align-items:center}
+  /* Footer text at bottom center */
+  .launcher-footer{position:fixed;left:0;right:0;bottom:12px;text-align:center;color:#bfc8c9;font-size:0.9rem;opacity:0.95;pointer-events:none}
+  /* Labels under each icon */
+  .img-label{display:block;margin-top:10px;color:var(--label-color, #e6eef6);font-weight:600;font-size:0.95rem}
+  /* Slightly smaller labels on narrow screens to save space */
+  @media (max-width:600px){
+    .img-label{font-size:0.9rem}
+  }
+  /* Stack the icon buttons vertically on narrow screens (mobile) */
+  @media (max-width:600px){
+    .buttons{flex-direction:column;gap:12px}
+    .img-btn{width:60vw;height:60vw;max-width:260px;max-height:260px}
+  }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="buttons">
+      <div class="btn-wrap">
+        <button class="img-btn" id="open-camera" title="Open camera" aria-label="Open camera">
+          <img src="camera/camera.png" alt="Camera" />
+        </button>
+        <span class="img-label">Camera</span>
+      </div>
+
+      <div class="btn-wrap">
+        <button class="img-btn" id="open-remote" title="Open remote" aria-label="Open remote">
+          <img src="remote/remote.png" alt="Remote" />
+        </button>
+        <span class="img-label">Remote</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Relative paths to the provided folders. These work when this file is opened from the workspace root or served by a web server.
+    const cameraPath = 'camera/index.html';
+    const remotePath = 'remote/index.html';
+
+    document.getElementById('open-camera').addEventListener('click', () => {
+      window.open(cameraPath, '_blank');
+    });
+
+    document.getElementById('open-remote').addEventListener('click', () => {
+      window.open(remotePath, '_blank');
+    });
+  </script>
+  <!-- footer text fixed to the bottom center -->
+  <div class="launcher-footer">networKING tegnologies</div>
+</body>
+</html>

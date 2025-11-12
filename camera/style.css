@@ -1,0 +1,81 @@
+:root{--bg:#071021;--card:#0b1220;--accent:#2dd4bf;--text:#e6eef6}
+.html, body{margin:0}
+/* Use a solid dark-blue background (no gradient / no banding) */
+body{font-family:system-ui,Segoe UI,Roboto,Arial;background:#071021;color:var(--text)}
+
+/* Enforce a truly flat page background and remove faint translucent bands
+  which can come from low-opacity UI cards or shadowed overlays. */
+html, body { background: #071021; }
+.wrap, .controls, .center-area, .center-code, .preview, #preview, #preview.fullscreen, .captured { background: transparent !important; box-shadow: none !important; }
+
+.wrap{max-width:920px;margin:20px auto;padding:18px}
+h1{margin:0 0 8px}
+.controls{background:rgba(255,255,255,0.02);padding:12px;border-radius:8px;margin-bottom:12px}
+.controls label{display:block;font-size:0.9em;margin-bottom:6px}
+input{padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);width:100%;box-sizing:border-box;background:transparent;color:var(--text)}
+.row{display:flex;gap:8px;margin-top:8px}
+button{padding:8px 12px;border-radius:8px;border:0;background:var(--accent);color:#012;cursor:pointer}
+.pairing{margin-top:12px;display:flex;gap:12px;align-items:center}
+.code{font-weight:700;color:#dff;letter-spacing:2px}
+.status{margin-top:10px;color:#9fb3c6}
+.preview{margin-top:10px}
+/* Make video responsive and fit mobile screens */
+#localVideo{width:100%;max-width:100vw;height:auto;border-radius:8px;background:#000;display:block;object-fit:cover}
+
+/* Captured photo preview */
+.captured{display:flex;align-items:center;justify-content:center;margin-top:12px}
+.captured img{max-width:94vw;max-height:60vh;border-radius:8px;object-fit:contain;box-shadow:0 6px 18px rgba(0,0,0,0.6)}
+
+/* wrapper for captured image with overlay action icons */
+.captured-wrap{position:relative;display:inline-block}
+.captured-wrap .captured-img{max-width:94vw;max-height:60vh;border-radius:12px;display:block}
+.icon-btn{position:absolute;z-index:10002;border:0;background:rgba(0,0,0,0.45);color:#fff;padding:8px;border-radius:8px;cursor:pointer;font-size:20px}
+.icon-btn.heart{right:12px;top:12px}
+.icon-btn.trash{left:12px;top:12px}
+.icon-btn:hover{background:rgba(0,0,0,0.6)}
+
+/* When preview is fullscreen, show captured image as a centered overlay above the video */
+#preview.fullscreen{position:fixed;inset:0}
+#preview.fullscreen .captured{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:10001;margin:0}
+#preview.fullscreen .captured img{max-height:80vh;max-width:94vw;background:rgba(0,0,0,0.35);padding:8px;border-radius:8px}
+
+/* On narrow screens, make the preview fill the screen width and use a 16:9 box to avoid overflow */
+@media (max-width:600px){
+  #localVideo{width:100vw;height:calc(100vw * 9 / 16);border-radius:0}
+  .wrap{padding:12px}
+}
+
+/* Centered full-screen area for the icon / generated code */
+.center-area{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;pointer-events:none}
+.center-area .gen-icon{pointer-events:auto;cursor:pointer;max-width:260px;width:26vw;height:26vw;max-height:260px;object-fit:contain}
+
+/* Increase launcher icon size on small screens for better tap targets */
+@media (max-width:600px){
+  .center-area .gen-icon{width:40vw;height:40vw;max-width:360px;max-height:360px}
+}
+.center-code{margin-top:12px;font-size:48px;line-height:1;color:var(--text);background:rgba(0,0,0,0.25);padding:12px 20px;border-radius:8px;letter-spacing:6px;display:none}
+
+@media (min-width:900px){
+  .wrap{display:grid;grid-template-columns:360px 1fr;gap:18px}
+  .preview{align-self:start}
+}
+
+/* Fullscreen preview when active: center and cover entire viewport */
+#preview.fullscreen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000;z-index:9998}
+#preview.fullscreen #localVideo{width:100vw;height:100vh;border-radius:0;object-fit:cover}
+#preview.fullscreen .center-code{display:none}
+
+/* Rounded polish additions */
+.gen-icon{border-radius:18px;box-shadow:0 8px 22px rgba(13,30,40,0.45);transition:transform .18s ease,box-shadow .18s ease,opacity .12s}
+.gen-icon:hover{transform:translateY(-4px) scale(1.02);box-shadow:0 16px 36px rgba(13,30,40,0.55)}
+.gen-icon:active{transform:translateY(-1px) scale(0.99)}
+.center-area{pointer-events:auto}
+.captured img{border-radius:14px;box-shadow:0 12px 30px rgba(2,10,18,0.55);border:1px solid rgba(255,255,255,0.04)}
+
+/* Button polish */
+button{border-radius:12px;transition:transform .12s ease,box-shadow .12s ease,opacity .12s ease}
+button:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(2,10,18,0.12)}
+button:active{transform:translateY(0);opacity:0.96}
+
+/* Make controls and status look softer */
+.controls, .status{border-radius:12px}

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Selfie Remote</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Small inline styles to keep the pairing card polished without editing external CSS -->
+  <style>
+    .pair-card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border: 1px solid rgba(159,179,198,0.12);
+      padding: 12px 14px;
+      border-radius: 10px;
+      max-width: 420px;
+      box-shadow: 0 4px 10px rgba(6,30,40,0.06);
+      color: #eaf6fb;
+    }
+    .pair-row{display:flex;gap:8px;margin-top:8px}
+    .pair-row input{flex:1;padding:8px 10px;border-radius:8px;border:1px solid rgba(159,179,198,0.12);background:transparent;color:inherit}
+    .pair-row button{padding:8px 12px;border-radius:8px;border:none;background:#4aa3d6;color:#022;cursor:pointer}
+    .pair-card label{font-weight:600;display:block;color:#cfeffb}
+    .hint{margin-top:8px;color:#9fb3c6;font-size:0.9em}
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    /* match root launcher background color */
+    body{background:#f5f7fb}
+  </style>
+</head>
+<body>
+  <div id="startScreen" aria-hidden="false">
+    <img id="startIcon" src="remote.png" alt="Open remote" />
+  </div>
+  <header>
+    <h1>Selfie Remote</h1>
+  </header>
+
+  <main>
+    <section id="controls">
+      <!-- Keep a visually-hidden status element so any scripts that query #status won't break -->
+      <div id="status" class="sr-only" aria-hidden="true">Initializing...</div>
+
+      <!-- Visible pairing UI (only this block should be shown in the controls area) -->
+      <div id="pairByCode" class="pair-card hidden" style="margin-top:10px;display:none">
+          <!-- Visible pairing UI (minimal: single input + round button) -->
+          <div class="pair-row">
+            <input id="codeInput" placeholder="Enter 4–6 character code" maxlength="6" />
+            <button id="codeConnect" title="Connect">➤</button>
+          </div>
+          <div style="margin-top:10px">
+            <label style="display:block;margin-bottom:6px;color:#cfeffb">Or scan QR</label>
+            <button id="openQrScanner" style="padding:8px 12px;border-radius:8px;border:none;background:#4aa3d6;color:#022;cursor:pointer">Open QR scanner</button>
+          </div>
+        </div>
+    </section>
+
+    <section id="viewer" class="hidden">
+      <div id="videoWrapper">
+        <video id="remoteVideo" autoplay playsinline></video>
+        <!-- Capture button is overlayed on the video feed for easier access -->
+        <button id="takePhoto" class="shutter overlay" title="Take photo">📸</button>
+        <!-- Captured preview will appear overlayed on top of the video (moved here to mirror camera behavior) -->
+        <div id="captured" class="captured"></div>
+      </div>
+      <div id="shutterRow">
+        <!-- download anchor removed: downloads are handled via the captured overlay actions -->
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="main.js"></script>
+  <!-- QR scanning library (works in modern browsers) -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.7/minified/html5-qrcode.min.js"></script>
+</body>
+</html>

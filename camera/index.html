@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Selfie Camera</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="centerArea" class="center-area">
+      <!-- Image used as the generate pair trigger; keep id so existing JS attaches handler -->
+      <img id="genCodeBtn" src="camera.png" alt="Generate Pair Code" class="gen-icon" />
+      <!-- show the pair code after generation (starts empty) -->
+      <div id="pairCodeDisplay" class="code center-code" aria-live="polite"></div>
+      <!-- QR image for scanning by remote phone -->
+      <div id="pairQr" class="center-qr" aria-hidden="true" style="display:none; margin-top:8px"></div>
+    </div>
+
+    <main class="wrap">
+      <p style="display:none">Simple camera page to register your device, start streaming and generate one-time pairing codes.</p>
+
+      <section class="controls" aria-hidden="true">
+        <!-- keep the camera name input in DOM (hidden) so existing JS can read/store it, but hide from users -->
+        <input id="cameraNameInput" placeholder="my-phone" style="display:none" />
+
+        <!-- status kept but hidden; scripts may update it for debugging -->
+        <div id="status" class="status" style="display:none">Idle</div>
+      </section>
+
+      <!-- Preview is hidden until a connection/session is established -->
+      <section id="preview" class="preview" style="display:none">
+        <video id="localVideo" autoplay playsinline muted></video>
+        <div id="captured" class="captured"></div>
+      </section>
+    </main>
+
+    <!-- QR generator (simple client-side lib) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script type="module" src="main.js"></script>
+  </body>
+</html>
